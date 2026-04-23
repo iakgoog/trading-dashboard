@@ -1,5 +1,6 @@
 import { useConnectionStore } from '../../stores/connection';
 import { useTickersStore } from '../../stores/tickers';
+import { TOP_SYMBOLS } from '../../constants/symbols';
 import type { BinanceWSMessage } from '../../types/binance';
 
 const WS_BASE_URL = 'wss://stream.binance.com:9443/stream?streams=';
@@ -167,9 +168,6 @@ export class BinanceWSManager {
 }
 
 // Singleton
-export const binanceWSManager = new BinanceWSManager([
-  'btcusdt', 'ethusdt', 'bnbusdt', 'solusdt', 'xrpusdt',
-  'adausdt', 'dogeusdt', 'avaxusdt', 'maticusdt', 'linkusdt',
-  'dotusdt', 'ltcusdt', 'uniusdt', 'atomusdt', 'xlmusdt',
-  'etcusdt', 'algousdt', 'vetusdt', 'filusdt', 'trxusdt',
-]);
+export const binanceWSManager = new BinanceWSManager(
+  TOP_SYMBOLS.map((s) => s.toLowerCase()),
+);
