@@ -94,19 +94,27 @@ export class BinanceWSManager {
     this.ws.onclose = (_event: CloseEvent) => {
       this.stopHeartbeat();
       if (this.stopped) return;
-      store.setStatus('reconnecting');
-      const currentRetry = useConnectionStore.getState().retryCount;
-      const delay = backoffDelay(currentRetry);
-      store.setRetryCount(currentRetry + 1);
-
-      this.reconnectTimer = setTimeout(() => {
-        if (!this.stopped) this.connect();
-      }, delay);
+      // Guard: heartbeat may have already scheduled a reconnect
+      if (this.reconnectTimer !== null) return;
+      this.scheduleReconnect();
     };
 
     this.ws.onerror = () => {
       useConnectionStore.getState().setLastError('WebSocket error');
     };
+  }
+
+  /** Centralized reconnect scheduler — safe to call from onclose or heartbeat. */
+  private scheduleReconnect(): void {
+    const store = useConnectionStore.getState();
+    store.setStatus('reconnecting');
+    const currentRetry = store.retryCount;
+    store.setRetryCount(currentRetry + 1);
+    const delay = backoffDelay(currentRetry);
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!this.stopped) this.connect();
+    }, delay);
   }
 
   private startHeartbeat(): void {
@@ -115,7 +123,14 @@ export class BinanceWSManager {
       const { lastMessageAt, status } = useConnectionStore.getState();
       if (status !== 'connected') return;
       if (lastMessageAt !== null && Date.now() - lastMessageAt >= STALE_THRESHOLD_MS) {
-        this.ws?.close(4000); // force close → triggers onclose → reconnect
+        // Schedule reconnect FIRST so onclose guard sees reconnectTimer !== null
+        // and doesn't double-schedule. This also updates status immediately
+        // without depending on onclose, which may not fire in DevTools offline mode.
+        this.stopHeartbeat();
+        const staleWs = this.ws;
+        this.ws = null;
+        this.scheduleReconnect();
+        try { staleWs?.close(4000); } catch { /* ignore */ }
       }
     }, HEARTBEAT_INTERVAL_MS);
   }
