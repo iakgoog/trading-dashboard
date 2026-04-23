@@ -51,9 +51,7 @@ export function StatusBadge() {
         <div className="absolute right-0 mt-2 w-56 rounded-lg border border-slate-200 bg-white shadow-lg z-10 p-3 text-sm text-slate-700">
           <p className="font-semibold mb-1">Connection Details</p>
           <p>Status: <span className="font-medium">{status}</span></p>
-          {retryCount > 0 && (
-            <p>Retry count: <span className="font-medium">{retryCount}</span></p>
-          )}
+          <p>Retry count: <span className="font-medium">{retryCount}</span></p>
           {secondsAgo !== null && (
             <p>Last message: <span className="font-medium">{secondsAgo}s ago</span></p>
           )}
