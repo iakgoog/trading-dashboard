@@ -23,8 +23,8 @@ interface CustomTooltipProps {
 
 function getTimeTicks(data: { time: number }[]): number[] {
   if (!data.length) return []
-  const start = data[0].time
-  const end = data[data.length - 1].time
+  const start = data[0]!.time
+  const end = data[data.length - 1]!.time
   const rangeMs = end - start
 
   let intervalMs: number
