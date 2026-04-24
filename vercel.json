@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/binance/:path*", "destination": "https://api.binance.com/:path*" }
+  ]
+}
