@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { TickerSnapshot } from '../types/binance';
+import { useAlertsStore } from './alerts';
 
 interface TickersState {
   tickers: Record<string, TickerSnapshot>;
@@ -9,10 +10,12 @@ interface TickersState {
 
 export const useTickersStore = create<TickersState>((set) => ({
   tickers: {},
-  updateTicker: (symbol, data) =>
+  updateTicker: (symbol, data) => {
+    useAlertsStore.getState().checkAndTrigger(symbol, parseFloat(data.lastPrice));
     set((state) => ({
       tickers: { ...state.tickers, [symbol]: data },
-    })),
+    }));
+  },
   setTickers: (tickerData) =>
     set((state) => {
       const newTickers: Record<string, TickerSnapshot> = { ...state.tickers };

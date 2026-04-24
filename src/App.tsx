@@ -4,6 +4,8 @@ import { Header } from './components/ui/Header';
 import { Drawer } from './components/ui/Drawer';
 import { TickerList } from './components/market/TickerList';
 import { PriceChart } from './components/PriceChart';
+import { AlertPanel } from './components/alerts/AlertPanel';
+import { Toast } from './components/ui/Toast';
 import { getTickerSnapshots } from './lib/binance/api';
 import { TOP_SYMBOLS } from './constants/symbols';
 import { useTickersStore } from './stores/tickers';
@@ -46,6 +48,7 @@ export function App() {
           <div className="flex-1 overflow-y-auto">
             <TickerList />
           </div>
+          <AlertPanel />
         </aside>
 
         {/* Main content area */}
@@ -61,6 +64,8 @@ export function App() {
           )}
         </main>
       </div>
+
+      <Toast />
 
       {/* Mobile: drawer with ticker list */}
       <Drawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
