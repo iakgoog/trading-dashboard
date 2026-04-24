@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import { App } from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { binanceWSManager } from './lib/binance/ws-manager';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -22,8 +23,10 @@ if (!rootEl) throw new Error('Root element not found');
 
 createRoot(rootEl).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
