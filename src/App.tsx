@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Header } from './components/ui/Header';
 import { Drawer } from './components/ui/Drawer';
 import { TickerList } from './components/market/TickerList';
@@ -39,20 +40,46 @@ export function App() {
       <Header onTickersOpen={() => setIsDrawerOpen(true)} />
 
       {/* Desktop: sidebar + main area layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar: ticker list (desktop only) */}
-        <aside className="hidden sm:flex flex-col w-80 lg:w-96 bg-slate-900 border-r border-slate-800 overflow-hidden">
+      <PanelGroup
+        direction="horizontal"
+        className="flex flex-1 overflow-hidden"
+        autoSaveId="dashboard-layout"
+      >
+        {/* Left panel */}
+        <Panel
+          defaultSize={22}
+          minSize={14}
+          maxSize={40}
+          className="hidden sm:flex flex-col bg-slate-900 overflow-hidden"
+        >
           <div className="px-3 py-2 border-b border-slate-800">
             <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Markets</h2>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-hidden">
             <TickerList />
           </div>
           <AlertPanel />
-        </aside>
+        </Panel>
 
-        {/* Main content area */}
-        <main className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
+        {/* Drag handle with bump */}
+        <PanelResizeHandle className="group relative flex items-center justify-center w-[5px] bg-slate-800 hover:bg-blue-500/30 data-[resize-handle-active]:bg-blue-500/40 cursor-col-resize transition-colors duration-150">
+          <div className="
+            absolute z-10 w-4 h-8 rounded-full
+            flex items-center justify-center gap-[3px] flex-col
+            bg-slate-700 border border-slate-600
+            group-hover:bg-blue-500 group-hover:border-blue-400
+            group-data-[resize-handle-active]:bg-blue-500
+            group-data-[resize-handle-active]:border-blue-400
+            transition-colors duration-150
+          ">
+            <span className="w-[2px] h-[2px] rounded-full bg-slate-400" />
+            <span className="w-[2px] h-[2px] rounded-full bg-slate-400" />
+            <span className="w-[2px] h-[2px] rounded-full bg-slate-400" />
+          </div>
+        </PanelResizeHandle>
+
+        {/* Right panel */}
+        <Panel className="flex flex-col overflow-hidden p-4 sm:p-6 lg:p-8">
           {selectedSymbol ? (
             <div className="h-full bg-slate-900 rounded-xl border border-slate-800">
               <PriceChart />
@@ -62,8 +89,8 @@ export function App() {
               <p className="text-sm">Select a ticker to view the chart</p>
             </div>
           )}
-        </main>
-      </div>
+        </Panel>
+      </PanelGroup>
 
       <Toast />
 
