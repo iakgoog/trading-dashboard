@@ -149,6 +149,11 @@ While maintaining momentum during the initial phase, this project was developed 
 ### Line chart over candlestick
 A line chart on `close` price satisfies the "real-time chart" requirement with lower complexity. The kline data stream provides full OHLCV — upgrading to a candlestick `ComposedChart` is straightforward if needed.
 
+### Unified Responsive Shell (Single Chart Instance)
+Rather than rendering separate chart component trees for desktop and mobile layouts, the application uses a unified `PanelGroup` shell. Responsive Tailwind classes (`hidden sm:flex` vs `absolute inset-0`) dynamically shift the layout without unmounting the chart. This architectural choice:
+- **Halves Resource Usage**: Guarantees only one active WebSocket connection and one set of DOM nodes for the chart regardless of viewport size.
+- **Prevents Desync**: Ensures mobile and desktop views are fundamentally looking at the exact same React state.
+
 ### Singleton WS manager with exponential backoff + jitter
 `BinanceWSManager` implements:
 - **Exponential backoff**: 500ms → 30s cap, ×2 multiplier
