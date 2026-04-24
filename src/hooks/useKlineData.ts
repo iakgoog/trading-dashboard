@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelectedSymbolStore } from '../stores/selected-symbol'
 import { getKlines, ChartPoint } from '../lib/binance/api'
+import type { KlineWSMessage } from '../types/binance'
 
 export function useKlineData() {
   const { selectedSymbol } = useSelectedSymbolStore()
   const queryClient = useQueryClient()
-  const [ws, setWs] = useState<WebSocket | null>(null)
 
   const { data: klines = [], isLoading, error } = useQuery({
     queryKey: ['klines', selectedSymbol],
@@ -18,43 +18,44 @@ export function useKlineData() {
   useEffect(() => {
     if (!selectedSymbol) return
 
-    if (ws) {
-      ws.close()
-    }
-
     const symbolLower = selectedSymbol.toLowerCase()
     const newWs = new WebSocket(`wss://stream.binance.com:9443/ws/${symbolLower}@kline_1m`)
 
-    newWs.onmessage = (event) => {
-      const message = JSON.parse(event.data)
-      if (message.e === 'kline') {
-        const k = message.k
-        const newPoint: ChartPoint = {
-          time: k.t,
-          value: parseFloat(k.c),
-        }
-
-        queryClient.setQueryData(['klines', selectedSymbol], (prev: ChartPoint[] = []) => {
-          const lastPoint = prev[prev.length - 1]
-          if (lastPoint && lastPoint.time === newPoint.time) {
-            return [...prev.slice(0, -1), newPoint]
-          } else {
-            return [...prev.slice(1), newPoint]
+    newWs.onmessage = (event: MessageEvent<string>) => {
+      try {
+        const message = JSON.parse(event.data) as KlineWSMessage
+        if (message.e === 'kline') {
+          const k = message.k
+          const newPoint: ChartPoint = {
+            time: k.t,
+            value: parseFloat(k.c),
           }
-        })
+
+          queryClient.setQueryData(['klines', selectedSymbol], (prev: ChartPoint[] = []) => {
+            if (!prev || prev.length === 0) return [newPoint]
+            
+            const lastPoint = prev[prev.length - 1]
+            if (lastPoint && lastPoint.time === newPoint.time) {
+              return [...prev.slice(0, -1), newPoint]
+            } else {
+              const next = [...prev, newPoint]
+              return next.length > 100 ? next.slice(1) : next
+            }
+          })
+        }
+      } catch (err) {
+        console.error('Error parsing kline message:', err)
       }
     }
 
-    newWs.onerror = (error) => {
-      console.error('Kline WebSocket error:', error)
+    newWs.onerror = (err) => {
+      console.error('Kline WebSocket error:', err)
     }
-
-    setWs(newWs)
 
     return () => {
       newWs.close()
     }
-  }, [selectedSymbol, queryClient, ws])
+  }, [selectedSymbol, queryClient])
 
   return { data: klines, isLoading, error }
 }
