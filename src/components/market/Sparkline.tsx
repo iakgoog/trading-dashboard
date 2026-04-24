@@ -16,7 +16,7 @@ export function Sparkline({ symbol }: SparklineProps) {
     );
   }
 
-  const isPositive = data[data.length - 1].value >= data[0].value;
+  const isPositive = data[data.length - 1]!.value >= data[0]!.value;
   const strokeColor = isPositive ? '#10b981' : '#f43f5e'; // emerald-500 : rose-500
 
   return (

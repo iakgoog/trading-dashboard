@@ -84,7 +84,7 @@ describe('useKlineData hook', () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.data).toEqual(mockKlines);
-    expect(api.getKlines).toHaveBeenCalledWith('BTCUSDT', '1m', 100);
+    expect(api.getKlines).toHaveBeenCalledWith('BTCUSDT', '1m', 360);
   });
 
   it('updates existing candle on WebSocket message with same timestamp', async () => {
@@ -97,7 +97,7 @@ describe('useKlineData hook', () => {
 
     await waitFor(() => expect(result.current.data).toEqual(initialKlines));
 
-    const ws = MockWebSocket.instances[0];
+    const ws = MockWebSocket.instances[0]!;
     ws.simulateMessage({
       e: 'kline',
       k: {
@@ -107,7 +107,7 @@ describe('useKlineData hook', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.data[0].value).toBe(51000);
+      expect(result.current.data[0]!.value).toBe(51000);
     });
     expect(result.current.data).toHaveLength(1);
   });
@@ -122,7 +122,7 @@ describe('useKlineData hook', () => {
 
     await waitFor(() => expect(result.current.data).toEqual(initialKlines));
 
-    const ws = MockWebSocket.instances[0];
+    const ws = MockWebSocket.instances[0]!;
     ws.simulateMessage({
       e: 'kline',
       k: {
@@ -133,13 +133,14 @@ describe('useKlineData hook', () => {
 
     await waitFor(() => {
       expect(result.current.data).toHaveLength(2);
-      expect(result.current.data[1]).toEqual({ time: 2000, value: 52000 });
+      expect(result.current.data[1]!.time).toBe(2000);
+      expect(result.current.data[1]!.value).toBe(52000);
     });
   });
 
-  it('maintains rolling window of 100 points', async () => {
-    // Create 100 points
-    const initialKlines = Array.from({ length: 100 }, (_, i) => ({
+  it('maintains rolling window of 360 points', async () => {
+    // Create 360 points
+    const initialKlines = Array.from({ length: 360 }, (_, i) => ({
       time: i * 1000,
       value: 50000 + i,
     }));
@@ -149,21 +150,21 @@ describe('useKlineData hook', () => {
 
     const { result } = renderHook(() => useKlineData(), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.data).toHaveLength(100));
+    await waitFor(() => expect(result.current.data).toHaveLength(360));
 
-    const ws = MockWebSocket.instances[0];
+    const ws = MockWebSocket.instances[0]!;
     ws.simulateMessage({
       e: 'kline',
       k: {
-        t: 100 * 1000,
+        t: 360 * 1000,
         c: '60000.00',
       },
     });
 
     await waitFor(() => {
-      expect(result.current.data).toHaveLength(100);
-      expect(result.current.data[0].time).toBe(1000); // Oldest (0) removed
-      expect(result.current.data[99].time).toBe(100000); // Newest added
+      expect(result.current.data).toHaveLength(360);
+      expect(result.current.data[0]!.time).toBe(1000); // Oldest (0) removed
+      expect(result.current.data[359]!.time).toBe(360000); // Newest added
     });
   });
 
@@ -173,7 +174,7 @@ describe('useKlineData hook', () => {
 
     const { unmount } = renderHook(() => useKlineData(), { wrapper: createWrapper() });
     
-    const ws = MockWebSocket.instances[0];
+    const ws = MockWebSocket.instances[0]!;
     const closeSpy = vi.spyOn(ws, 'close');
 
     unmount();
