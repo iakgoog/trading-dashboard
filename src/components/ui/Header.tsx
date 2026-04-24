@@ -20,9 +20,22 @@ export function Header({ onTickersOpen }: HeaderProps) {
             {/* Mobile: Tickers button (hidden on desktop) */}
             <button
               onClick={onTickersOpen}
-              className="sm:hidden text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              className="sm:hidden inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-3.5 py-1.5 rounded-lg shadow-sm transition-colors"
               aria-label="Open tickers list"
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 3h18M3 9h18M3 15h12M3 21h8" />
+              </svg>
               Tickers
             </button>
 
