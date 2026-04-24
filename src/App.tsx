@@ -35,6 +35,7 @@ export function App() {
     }
   }, [snapshots, setTickers])
 
+
   return (
     <div className="h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
       <Header onTickersOpen={() => setIsDrawerOpen(true)} />
@@ -106,7 +107,7 @@ export function App() {
               Markets
             </h2>
           </div>
-          <TickerList />
+          <TickerList onSelect={() => setIsDrawerOpen(false)} />
         </div>
       </Drawer>
     </div>

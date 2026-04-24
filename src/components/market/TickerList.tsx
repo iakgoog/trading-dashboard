@@ -3,7 +3,7 @@ import { TOP_SYMBOLS } from '../../constants/symbols'
 import { TickerRow } from './TickerRow'
 import { useSelectedSymbolStore } from '../../stores/selected-symbol'
 
-function MobileTickerCard({ symbol }: { symbol: string }) {
+function MobileTickerCard({ symbol, onSelect }: { symbol: string; onSelect?: () => void }) {
   const ticker = useTickersStore((state) => state.tickers[symbol])
   const selectedSymbol = useSelectedSymbolStore((state) => state.selectedSymbol)
   const setSelectedSymbol = useSelectedSymbolStore((state) => state.setSelectedSymbol)
@@ -15,7 +15,7 @@ function MobileTickerCard({ symbol }: { symbol: string }) {
       <button
         type="button"
         className={`w-full text-left px-4 py-3 flex justify-between items-center border-b border-slate-800 transition-colors min-h-[56px] hover:bg-slate-800 ${isSelected ? 'bg-slate-700/50' : ''}`}
-        onClick={() => setSelectedSymbol(symbol)}
+        onClick={() => { setSelectedSymbol(symbol); onSelect?.() }}
       >
         <span className="font-semibold text-slate-300 text-sm">
           {symbol.replace('USDT', '')}
@@ -35,7 +35,7 @@ function MobileTickerCard({ symbol }: { symbol: string }) {
     <button
       type="button"
       className={`w-full text-left px-4 py-3 border-b border-slate-800 transition-colors min-h-[56px] hover:bg-slate-800 ${isSelected ? 'bg-slate-700/50 ring-1 ring-inset ring-slate-600' : ''}`}
-      onClick={() => setSelectedSymbol(symbol)}
+      onClick={() => { setSelectedSymbol(symbol); onSelect?.() }}
     >
       <div className="flex justify-between items-center">
         <span className="font-semibold text-slate-200 text-sm">
@@ -65,7 +65,7 @@ function MobileTickerCard({ symbol }: { symbol: string }) {
   )
 }
 
-export function TickerList() {
+export function TickerList({ onSelect }: { onSelect?: () => void } = {}) {
   const tickerCount = useTickersStore((state) => Object.keys(state.tickers).length)
   const isLoading = tickerCount === 0
 
@@ -118,7 +118,7 @@ export function TickerList() {
         ) : (
           <div>
             {TOP_SYMBOLS.map((symbol) => (
-              <MobileTickerCard key={symbol} symbol={symbol} />
+              <MobileTickerCard key={symbol} symbol={symbol} {...(onSelect ? { onSelect } : {})} />
             ))}
           </div>
         )}
