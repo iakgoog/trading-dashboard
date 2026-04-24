@@ -40,8 +40,8 @@ describe('getKlines', () => {
     const result = await getKlines('BTCUSDT', '1m', 2)
 
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ time: 1700000000000, value: 65200 })
-    expect(result[1]).toEqual({ time: 1700000060000, value: 65600 })
+    expect(result[0]).toEqual({ time: 1700000000000, open: 65000, high: 65500, low: 64800, value: 65200, volume: 100 })
+    expect(result[1]).toEqual({ time: 1700000060000, open: 65200, high: 65800, low: 65100, value: 65600, volume: 120 })
   })
 
   it('calls the correct Binance REST endpoint', async () => {
