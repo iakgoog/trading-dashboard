@@ -34,15 +34,20 @@ function getTimeTicks(data: { time: number }[]): number[] {
   const end = data[data.length - 1]!.time
   const rangeMs = end - start
 
+  // Standardize intervals: 15m, 30m, 1h, 2h, 4h
   let intervalMs: number
   if (rangeMs <= 2 * 3_600_000) intervalMs = 15 * 60_000
-  else if (rangeMs <= 6 * 3_600_000) intervalMs = 30 * 60_000
-  else if (rangeMs <= 24 * 3_600_000) intervalMs = 3_600_000
+  else if (rangeMs <= 4 * 3_600_000) intervalMs = 30 * 60_000
+  else if (rangeMs <= 8 * 3_600_000) intervalMs = 3_600_000
+  else if (rangeMs <= 16 * 3_600_000) intervalMs = 2 * 3_600_000
   else intervalMs = 4 * 3_600_000
 
+  // Align first tick to interval boundary for visual stability
   const firstTick = Math.ceil(start / intervalMs) * intervalMs
   const ticks: number[] = []
-  for (let t = firstTick; t <= end; t += intervalMs) ticks.push(t)
+  for (let t = firstTick; t <= end; t += intervalMs) {
+    ticks.push(t)
+  }
   return ticks
 }
 
@@ -161,6 +166,7 @@ export function PriceChart() {
               tickFormatter={formatTime}
               stroke={CHART_COLORS.axisLine}
               tick={{ fill: CHART_COLORS.axisTick, fontSize: 11 }}
+              minTickGap={40}
             />
             <YAxis hide domain={['auto', 'auto']} />
             <Tooltip content={<CustomTooltip />} />
