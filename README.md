@@ -14,6 +14,100 @@ Real-time cryptocurrency trading dashboard built for the Multibank technical ass
 | Styling | Tailwind CSS | Utility-first, no CSS-in-JS overhead |
 | Testing | Vitest + RTL | Native ESM, fast, same config as Vite |
 
+## Features
+
+### Ticker List
+
+- Displays 20 live cryptocurrency pairs (BTC, ETH, SOL, BNB, XRP, …)
+- Each row shows **live price**, **24 h % change**, and **trading volume**
+- Price colour flips green/red on direction change
+- Adaptive price precision: 2 dp ≥ $1 000 → 8 dp for sub-cent assets
+- Volume rendered with K / M / B suffixes
+
+**How to use:** Click any row (desktop) or card (mobile) to load that symbol's chart.
+
+---
+
+### Real-Time Price Chart
+
+- Area chart of the last 360 1-minute candles (6 hours of history)
+- Updates tick-by-tick via WebSocket — no polling
+- Y-axis domain and X-axis intervals adjust automatically to the visible range
+- Chart colour tracks the 24 h change (green / red)
+- Hover tooltip shows Open, High, Low, Close, and Volume for that candle
+
+**How to use:** Select a ticker from the list. Hover over the chart to inspect individual candles.
+
+---
+
+### Sparklines
+
+- Miniature 7-day trend lines rendered inside every ticker row (desktop table only)
+- Green when the close is above the open for the period; red otherwise
+- Data is fetched once per hour and cached — zero redundant requests
+
+---
+
+### Price Alerts
+
+- Create threshold alerts for any of the 20 symbols
+- Two directions: **Above** (fires when price crosses upward) or **Below** (fires when price crosses downward)
+- Active alert count shown in the panel header — **"Alerts (3)"**
+- Triggered alerts show with strikethrough text and the time they fired
+- Keeps the last 20 triggered alerts in history
+- Fires a **browser push notification** (requests permission on first use) and an in-app **toast** simultaneously
+
+**How to use:**
+1. Expand the **Alerts** panel in the left sidebar (desktop) or open the drawer (mobile).
+2. Select a symbol from the dropdown.
+3. Type a price threshold and choose **Above** or **Below**.
+4. Press **Add Alert** or hit **Enter**.
+5. When the price crosses the threshold a toast appears bottom-right and a browser notification fires (if permitted).
+6. Click **×** on any alert to remove it.
+
+---
+
+### Toast Notifications
+
+- Slides up from the bottom-right corner when an alert triggers
+- Shows symbol, direction indicator (▲ / ▼), and the threshold price
+- Auto-dismisses after 4 seconds; click **×** to dismiss immediately
+
+---
+
+### Connection Status Badge
+
+- Located in the top-right of the header
+- Animated pulse dot colour-codes the state: **green** (live), **amber** (reconnecting), **red** (disconnected)
+- Labels: **Live Data** / **Reconnecting…** / **Disconnected**
+
+**How to use:** Click the badge to expand a details panel showing status, reconnect attempt count, and seconds since the last message.
+
+---
+
+### Draggable Panel Divider
+
+- The sidebar and chart area are separated by a drag handle
+- Drag to resize — sidebar ranges from 14 % to 40 % of the viewport width
+- Panel proportions are auto-saved and restored on next load
+
+---
+
+### Mobile Layout
+
+- Below the `sm` breakpoint (640 px) the sidebar is hidden
+- A **Tickers** button in the header opens a slide-in drawer containing the full ticker list
+- Select a ticker in the drawer to load the chart — the drawer auto-closes
+
+---
+
+### Error Boundary
+
+- Catches unhandled React render errors
+- Displays a full-screen error UI with the message and a **Try again** button that resets the boundary
+
+---
+
 ## Architecture
 
 ```
@@ -21,15 +115,17 @@ Binance Combined WS Stream ──► BinanceWSManager (singleton)
   20 symbols × @ticker               │
                                      ▼
                             Zustand tickers store ──► TickerList (live prices)
+                                     │
+                                     └──► alerts store ──► toast / browser notification
 
 User selects symbol
         │
-        ├──► TanStack Query ──► REST /api/v3/klines ──► initial 100 candles
+        ├──► TanStack Query ──► REST /api/v3/klines ──► initial 360 candles
         │                                                        │
         └──► kline WS @kline_1m ──► rolling window update ◄─────┘
                                             │
                                             ▼
-                                    Recharts LineChart (real-time)
+                                    Recharts AreaChart (real-time)
 ```
 
 ### Two separate WebSocket concerns
@@ -40,7 +136,7 @@ User selects symbol
 
 ### REST + WebSocket stitching
 
-On symbol select, TanStack Query fetches the last 100 1-minute candles from REST. The kline WebSocket then patches the latest candle (same `openTime`) or appends new ones, maintaining a rolling 100-candle window. This means the chart is immediately populated with history and then live — no blank-chart flash.
+On symbol select, TanStack Query fetches the last 360 1-minute candles from REST. The kline WebSocket then patches the latest candle (same `openTime`) or appends new ones, maintaining a rolling window. The chart is immediately populated with history and then live — no blank-chart flash.
 
 ## Key Design Decisions
 
@@ -81,6 +177,9 @@ npm run dev          # Dev server
 npm run build        # Production build (tsc + vite)
 npm run type-check   # TypeScript validation only
 npm run lint         # ESLint
+npm run lint:fix     # ESLint with auto-fix
+npm run format       # Prettier (write)
+npm run format:check # Prettier (check only)
 npm test             # Vitest (watch mode)
 npm run test:run     # Vitest (CI / single pass)
 npm run test:coverage  # Coverage report (v8)
@@ -103,4 +202,4 @@ Tests cover:
 - Candlestick chart via Recharts `ComposedChart` (OHLCV data already in the kline stream)
 - Volume bars as a secondary axis
 - Symbol search / filter in the ticker list
-- Persist selected symbol to `localStorage`
+- Persist selected symbol and alert list to `localStorage`
