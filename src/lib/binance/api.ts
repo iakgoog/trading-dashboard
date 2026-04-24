@@ -1,3 +1,5 @@
+import { BINANCE_REST_BASE } from '../../constants/api'
+
 export interface TickerSnapshot {
   symbol: string
   priceChange: string
@@ -44,7 +46,7 @@ export interface ChartPoint {
 export async function getTickerSnapshots(symbols: string[]): Promise<TickerSnapshot[]> {
   const symbolsParam = JSON.stringify(symbols)
   const response = await fetch(
-    `https://api.binance.com/api/v3/ticker/24hr?symbols=${encodeURIComponent(symbolsParam)}`,
+    `${BINANCE_REST_BASE}/api/v3/ticker/24hr?symbols=${encodeURIComponent(symbolsParam)}`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -66,7 +68,7 @@ export async function getKlines(
   limit: number = 100
 ): Promise<ChartPoint[]> {
   const response = await fetch(
-    `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
+    `${BINANCE_REST_BASE}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`,
     {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },

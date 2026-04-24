@@ -2,8 +2,7 @@ import { useConnectionStore } from '../../stores/connection';
 import { useTickersStore } from '../../stores/tickers';
 import { TOP_SYMBOLS } from '../../constants/symbols';
 import type { BinanceWSMessage } from '../../types/binance';
-
-const WS_BASE_URL = 'wss://stream.binance.com:9443/stream?streams=';
+import { BINANCE_WS_BASE_STREAM, TICKER_STREAM_SUFFIX } from '../../constants/api';
 const HEARTBEAT_INTERVAL_MS = 1_000; // Check every 1s for precision (D-05)
 const STALE_THRESHOLD_MS = 35_000;
 const BACKOFF_BASE_MS = 500;
@@ -51,8 +50,8 @@ export class BinanceWSManager {
   }
 
   private buildUrl(): string {
-    const streams = this.symbols.map((s) => `${s}@ticker`).join('/');
-    return `${WS_BASE_URL}${streams}`;
+    const streams = this.symbols.map((s) => `${s}${TICKER_STREAM_SUFFIX}`).join('/');
+    return `${BINANCE_WS_BASE_STREAM}${streams}`;
   }
 
   private connect(): void {

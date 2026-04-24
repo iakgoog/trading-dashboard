@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSelectedSymbolStore } from '../stores/selected-symbol'
 import { getKlines, ChartPoint } from '../lib/binance/api'
 import type { KlineWSMessage } from '../types/binance'
+import { BINANCE_WS_BASE_WS, KLINE_INTERVAL, KLINE_LIMIT, KLINE_STREAM_SUFFIX } from '../constants/api'
 
 export function useKlineData() {
   const { selectedSymbol } = useSelectedSymbolStore()
@@ -10,7 +11,7 @@ export function useKlineData() {
 
   const { data: klines = [], isLoading, error } = useQuery({
     queryKey: ['klines', selectedSymbol],
-    queryFn: () => selectedSymbol ? getKlines(selectedSymbol, '1m', 100) : Promise.resolve([]),
+    queryFn: () => selectedSymbol ? getKlines(selectedSymbol, KLINE_INTERVAL, KLINE_LIMIT) : Promise.resolve([]),
     enabled: !!selectedSymbol,
     staleTime: 60000,
   })
@@ -19,7 +20,7 @@ export function useKlineData() {
     if (!selectedSymbol) return
 
     const symbolLower = selectedSymbol.toLowerCase()
-    const newWs = new WebSocket(`wss://stream.binance.com:9443/ws/${symbolLower}@kline_1m`)
+    const newWs = new WebSocket(`${BINANCE_WS_BASE_WS}/${symbolLower}${KLINE_STREAM_SUFFIX}`)
 
     newWs.onmessage = (event: MessageEvent<string>) => {
       try {
@@ -39,7 +40,7 @@ export function useKlineData() {
               return [...prev.slice(0, -1), newPoint]
             } else {
               const next = [...prev, newPoint]
-              return next.length > 100 ? next.slice(1) : next
+              return next.length > KLINE_LIMIT ? next.slice(1) : next
             }
           })
         }
