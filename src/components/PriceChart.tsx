@@ -21,6 +21,24 @@ interface CustomTooltipProps {
   label?: number
 }
 
+function getTimeTicks(data: { time: number }[]): number[] {
+  if (!data.length) return []
+  const start = data[0].time
+  const end = data[data.length - 1].time
+  const rangeMs = end - start
+
+  let intervalMs: number
+  if (rangeMs <= 2 * 3_600_000)       intervalMs = 15 * 60_000
+  else if (rangeMs <= 6 * 3_600_000)  intervalMs = 30 * 60_000
+  else if (rangeMs <= 24 * 3_600_000) intervalMs = 3_600_000
+  else                                intervalMs = 4 * 3_600_000
+
+  const firstTick = Math.ceil(start / intervalMs) * intervalMs
+  const ticks: number[] = []
+  for (let t = firstTick; t <= end; t += intervalMs) ticks.push(t)
+  return ticks
+}
+
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length || payload[0] === undefined) return null
   const d = payload[0].payload
@@ -81,8 +99,13 @@ export function PriceChart() {
     ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`
     : null
 
-  const formatTime = (timestamp: number) =>
-    new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  const formatTime = (timestamp: number): string => {
+    const d = new Date(timestamp)
+    if (d.getHours() === 0 && d.getMinutes() === 0) return String(d.getDate())
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+  }
+
+  const xTicks = getTimeTicks(data)
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-full text-slate-400">Loading chart data...</div>
@@ -114,10 +137,13 @@ export function PriceChart() {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <XAxis
               dataKey="time"
+              type="number"
+              scale="time"
+              domain={['dataMin', 'dataMax']}
+              ticks={xTicks}
               tickFormatter={formatTime}
               stroke="#334155"
               tick={{ fill: '#64748b', fontSize: 11 }}
-              minTickGap={60}
             />
             <YAxis hide domain={['auto', 'auto']} />
             <Tooltip content={<CustomTooltip />} />
