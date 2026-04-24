@@ -75,7 +75,7 @@ describe('useKlineData hook', () => {
   });
 
   it('fetches initial data when a symbol is selected', async () => {
-    const mockKlines = [{ time: 1000, value: 50000 }];
+    const mockKlines = [{ time: 1000, value: 50000, open: 50000, high: 50100, low: 49900, volume: 100 }];
     vi.mocked(api.getKlines).mockResolvedValue(mockKlines);
 
     useSelectedSymbolStore.getState().setSelectedSymbol('BTCUSDT');
@@ -88,7 +88,7 @@ describe('useKlineData hook', () => {
   });
 
   it('updates existing candle on WebSocket message with same timestamp', async () => {
-    const initialKlines = [{ time: 1000, value: 50000 }];
+    const initialKlines = [{ time: 1000, value: 50000, open: 50000, high: 50100, low: 49900, volume: 100 }];
     vi.mocked(api.getKlines).mockResolvedValue(initialKlines);
 
     useSelectedSymbolStore.getState().setSelectedSymbol('BTCUSDT');
@@ -113,7 +113,7 @@ describe('useKlineData hook', () => {
   });
 
   it('appends new candle on WebSocket message with new timestamp', async () => {
-    const initialKlines = [{ time: 1000, value: 50000 }];
+    const initialKlines = [{ time: 1000, value: 50000, open: 50000, high: 50100, low: 49900, volume: 100 }];
     vi.mocked(api.getKlines).mockResolvedValue(initialKlines);
 
     useSelectedSymbolStore.getState().setSelectedSymbol('BTCUSDT');
@@ -143,6 +143,10 @@ describe('useKlineData hook', () => {
     const initialKlines = Array.from({ length: 360 }, (_, i) => ({
       time: i * 1000,
       value: 50000 + i,
+      open: 50000 + i,
+      high: 50000 + i + 1,
+      low: 50000 + i - 1,
+      volume: 100,
     }));
     vi.mocked(api.getKlines).mockResolvedValue(initialKlines);
 
