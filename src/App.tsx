@@ -39,7 +39,7 @@ export function App() {
       {/* Desktop: sidebar + main area layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar: ticker list (desktop only) */}
-        <aside className="hidden sm:flex flex-col w-64 lg:w-72 bg-slate-900 border-r border-slate-800 overflow-hidden">
+        <aside className="hidden sm:flex flex-col w-80 lg:w-96 bg-slate-900 border-r border-slate-800 overflow-hidden">
           <div className="px-3 py-2 border-b border-slate-800">
             <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Markets</h2>
           </div>

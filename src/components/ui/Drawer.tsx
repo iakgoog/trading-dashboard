@@ -21,7 +21,7 @@ export function Drawer({ isOpen, onClose, children }: DrawerProps) {
       {/* Slide-over panel */}
       <div
         className={[
-          'fixed inset-y-0 left-0 w-80 bg-slate-900 shadow-2xl z-40',
+          'fixed inset-y-0 left-0 w-96 max-w-[90vw] bg-slate-900 shadow-2xl z-40',
           'transform transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
