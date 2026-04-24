@@ -9,31 +9,31 @@ export function formatAdaptivePrice(price: number): string {
   const options: Intl.NumberFormatOptions = {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  };
-
-  if (price < 0.01) {
-    options.minimumFractionDigits = 8;
-    options.maximumFractionDigits = 8;
-  } else if (price < 1) {
-    options.minimumFractionDigits = 6;
-    options.maximumFractionDigits = 6;
-  } else if (price < 1000) {
-    options.minimumFractionDigits = 4;
-    options.maximumFractionDigits = 4;
   }
 
-  return new Intl.NumberFormat('en-US', options).format(price);
+  if (price < 0.01) {
+    options.minimumFractionDigits = 8
+    options.maximumFractionDigits = 8
+  } else if (price < 1) {
+    options.minimumFractionDigits = 6
+    options.maximumFractionDigits = 6
+  } else if (price < 1000) {
+    options.minimumFractionDigits = 4
+    options.maximumFractionDigits = 4
+  }
+
+  return new Intl.NumberFormat('en-US', options).format(price)
 }
 
 /**
  * Formats volume with K/M/B suffixes.
  */
 export function formatVolume(volume: string | number): string {
-  const v = typeof volume === 'string' ? parseFloat(volume) : volume;
-  if (isNaN(v)) return '0.00';
-  
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(2)}B`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(2)}K`;
-  return v.toFixed(2);
+  const v = typeof volume === 'string' ? parseFloat(volume) : volume
+  if (isNaN(v)) return '0.00'
+
+  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(2)}B`
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`
+  if (v >= 1_000) return `${(v / 1_000).toFixed(2)}K`
+  return v.toFixed(2)
 }

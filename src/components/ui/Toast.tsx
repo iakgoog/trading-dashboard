@@ -23,8 +23,7 @@ export function Toast() {
     <div className="fixed bottom-4 right-4 z-50 bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 shadow-xl text-sm text-slate-100 flex items-center gap-3 animate-in slide-in-from-bottom-2">
       <span className="text-yellow-400 text-base">⚡</span>
       <div>
-        <span className="font-semibold">{visible.symbol}</span>
-        {' '}crossed{' '}
+        <span className="font-semibold">{visible.symbol}</span> crossed{' '}
         <span className={visible.direction === 'above' ? 'text-green-400' : 'text-red-400'}>
           {visible.direction === 'above' ? '▲' : '▼'} {visible.price.toLocaleString()}
         </span>

@@ -1,24 +1,24 @@
-import { create } from 'zustand';
-import type { TickerSnapshot } from '../types/binance';
-import { useAlertsStore } from './alerts';
+import { create } from 'zustand'
+import type { TickerSnapshot } from '../types/binance'
+import { useAlertsStore } from './alerts'
 
 interface TickersState {
-  tickers: Record<string, TickerSnapshot>;
-  updateTicker: (symbol: string, data: TickerSnapshot) => void;
-  setTickers: (tickerData: Array<{ symbol: string; price: number; change24h: number }>) => void;
+  tickers: Record<string, TickerSnapshot>
+  updateTicker: (symbol: string, data: TickerSnapshot) => void
+  setTickers: (tickerData: Array<{ symbol: string; price: number; change24h: number }>) => void
 }
 
 export const useTickersStore = create<TickersState>((set) => ({
   tickers: {},
   updateTicker: (symbol, data) => {
-    useAlertsStore.getState().checkAndTrigger(symbol, parseFloat(data.lastPrice));
+    useAlertsStore.getState().checkAndTrigger(symbol, parseFloat(data.lastPrice))
     set((state) => ({
       tickers: { ...state.tickers, [symbol]: data },
-    }));
+    }))
   },
   setTickers: (tickerData) =>
     set((state) => {
-      const newTickers: Record<string, TickerSnapshot> = { ...state.tickers };
+      const newTickers: Record<string, TickerSnapshot> = { ...state.tickers }
       tickerData.forEach((t) => {
         newTickers[t.symbol] = {
           symbol: t.symbol,
@@ -26,8 +26,8 @@ export const useTickersStore = create<TickersState>((set) => ({
           priceChangePercent: t.change24h.toString(),
           volume: '0',
           openTime: Date.now(),
-        };
-      });
-      return { tickers: newTickers };
+        }
+      })
+      return { tickers: newTickers }
     }),
-}));
+}))

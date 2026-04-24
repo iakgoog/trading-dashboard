@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 interface DrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: ReactNode;
+  isOpen: boolean
+  onClose: () => void
+  children: ReactNode
 }
 
 export function Drawer({ isOpen, onClose, children }: DrawerProps) {
@@ -32,5 +32,5 @@ export function Drawer({ isOpen, onClose, children }: DrawerProps) {
         {children}
       </div>
     </>
-  );
+  )
 }

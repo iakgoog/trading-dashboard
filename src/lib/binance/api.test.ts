@@ -7,7 +7,8 @@ function mockFetch(status: number, body: unknown) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
     ok: status >= 200 && status < 300,
     status,
-    statusText: status === 429 ? 'Too Many Requests' : status === 500 ? 'Internal Server Error' : 'OK',
+    statusText:
+      status === 429 ? 'Too Many Requests' : status === 500 ? 'Internal Server Error' : 'OK',
     json: async () => body,
   } as Response)
 }
@@ -40,8 +41,22 @@ describe('getKlines', () => {
     const result = await getKlines('BTCUSDT', '1m', 2)
 
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ time: 1700000000000, open: 65000, high: 65500, low: 64800, value: 65200, volume: 100 })
-    expect(result[1]).toEqual({ time: 1700000060000, open: 65200, high: 65800, low: 65100, value: 65600, volume: 120 })
+    expect(result[0]).toEqual({
+      time: 1700000000000,
+      open: 65000,
+      high: 65500,
+      low: 64800,
+      value: 65200,
+      volume: 100,
+    })
+    expect(result[1]).toEqual({
+      time: 1700000060000,
+      open: 65200,
+      high: 65800,
+      low: 65100,
+      value: 65600,
+      volume: 120,
+    })
   })
 
   it('calls the correct Binance REST endpoint', async () => {
@@ -50,11 +65,11 @@ describe('getKlines', () => {
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/binance/api/v3/klines'),
-      expect.any(Object),
+      expect.any(Object)
     )
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('symbol=ETHUSDT'),
-      expect.any(Object),
+      expect.any(Object)
     )
   })
 
@@ -100,11 +115,11 @@ describe('getTickerSnapshots', () => {
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/binance/api/v3/ticker/24hr'),
-      expect.any(Object),
+      expect.any(Object)
     )
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('symbols='),
-      expect.any(Object),
+      expect.any(Object)
     )
   })
 

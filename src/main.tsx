@@ -1,10 +1,10 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
-import { App } from './App';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { binanceWSManager } from './lib/binance/ws-manager';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import { App } from './App'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { binanceWSManager } from './lib/binance/ws-manager'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,12 +14,12 @@ const queryClient = new QueryClient({
       retryDelay: 1000,
     },
   },
-});
+})
 
-binanceWSManager.start();
+binanceWSManager.start()
 
-const rootEl = document.getElementById('root');
-if (!rootEl) throw new Error('Root element not found');
+const rootEl = document.getElementById('root')
+if (!rootEl) throw new Error('Root element not found')
 
 createRoot(rootEl).render(
   <StrictMode>
@@ -28,5 +28,5 @@ createRoot(rootEl).render(
         <App />
       </QueryClientProvider>
     </ErrorBoundary>
-  </StrictMode>,
-);
+  </StrictMode>
+)

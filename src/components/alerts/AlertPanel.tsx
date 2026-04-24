@@ -39,7 +39,9 @@ export function AlertPanel() {
               className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-slate-500"
             >
               {TOP_SYMBOLS.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
             <div className="flex gap-1">
@@ -117,7 +119,9 @@ export function AlertPanel() {
                     </span>{' '}
                     {t.price.toLocaleString()}
                   </span>
-                  <span className="tabular-nums">{new Date(t.triggeredAt).toLocaleTimeString()}</span>
+                  <span className="tabular-nums">
+                    {new Date(t.triggeredAt).toLocaleTimeString()}
+                  </span>
                 </div>
               ))}
             </div>

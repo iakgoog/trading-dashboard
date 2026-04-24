@@ -1,17 +1,17 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
 
-export type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected';
+export type ConnectionStatus = 'connected' | 'reconnecting' | 'disconnected'
 
 interface ConnectionState {
-  status: ConnectionStatus;
-  retryCount: number;
-  lastMessageAt: number | null;
-  lastError: string | null;
-  setStatus: (status: ConnectionStatus) => void;
-  setRetryCount: (count: number) => void;
-  setLastMessageAt: (time: number) => void;
-  setLastError: (error: string | null) => void;
-  reset: () => void;
+  status: ConnectionStatus
+  retryCount: number
+  lastMessageAt: number | null
+  lastError: string | null
+  setStatus: (status: ConnectionStatus) => void
+  setRetryCount: (count: number) => void
+  setLastMessageAt: (time: number) => void
+  setLastError: (error: string | null) => void
+  reset: () => void
 }
 
 export const useConnectionStore = create<ConnectionState>((set) => ({
@@ -30,4 +30,4 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
       lastMessageAt: null,
       lastError: null,
     }),
-}));
+}))

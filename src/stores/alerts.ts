@@ -30,8 +30,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
     set((state) => ({ alerts: [...state.alerts, alert] }))
   },
 
-  removeAlert: (id) =>
-    set((state) => ({ alerts: state.alerts.filter((a) => a.id !== id) })),
+  removeAlert: (id) => set((state) => ({ alerts: state.alerts.filter((a) => a.id !== id) })),
 
   checkAndTrigger: (symbol, currentPrice) => {
     const { alerts, triggered } = get()

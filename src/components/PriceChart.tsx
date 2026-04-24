@@ -4,6 +4,13 @@ import { useTickersStore } from '../stores/tickers'
 import { useSelectedSymbolStore } from '../stores/selected-symbol'
 import { formatAdaptivePrice, formatVolume } from '../lib/format'
 
+const CHART_COLORS = {
+  axisLine: '#334155', // slate-700
+  axisTick: '#64748b', // slate-500
+  positive: '#22c55e', // green-500
+  negative: '#ef4444', // red-500
+} as const
+
 interface TooltipPayload {
   payload: {
     time: number
@@ -28,10 +35,10 @@ function getTimeTicks(data: { time: number }[]): number[] {
   const rangeMs = end - start
 
   let intervalMs: number
-  if (rangeMs <= 2 * 3_600_000)       intervalMs = 15 * 60_000
-  else if (rangeMs <= 6 * 3_600_000)  intervalMs = 30 * 60_000
+  if (rangeMs <= 2 * 3_600_000) intervalMs = 15 * 60_000
+  else if (rangeMs <= 6 * 3_600_000) intervalMs = 30 * 60_000
   else if (rangeMs <= 24 * 3_600_000) intervalMs = 3_600_000
-  else                                intervalMs = 4 * 3_600_000
+  else intervalMs = 4 * 3_600_000
 
   const firstTick = Math.ceil(start / intervalMs) * intervalMs
   const ticks: number[] = []
@@ -42,7 +49,7 @@ function getTimeTicks(data: { time: number }[]): number[] {
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length || payload[0] === undefined) return null
   const d = payload[0].payload
-  
+
   const dt = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
     month: 'short',
@@ -89,15 +96,11 @@ export function PriceChart() {
 
   const change = ticker ? parseFloat(ticker.priceChangePercent) : 0
   const isNegative = change < 0
-  const color = isNegative ? '#ef4444' : '#22c55e'
+  const color = isNegative ? CHART_COLORS.negative : CHART_COLORS.positive
 
-  const lastPriceFormatted = ticker
-    ? formatAdaptivePrice(parseFloat(ticker.lastPrice))
-    : null
+  const lastPriceFormatted = ticker ? formatAdaptivePrice(parseFloat(ticker.lastPrice)) : null
 
-  const changeLabel = ticker
-    ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`
-    : null
+  const changeLabel = ticker ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : null
 
   const formatTime = (timestamp: number): string => {
     const d = new Date(timestamp)
@@ -108,15 +111,27 @@ export function PriceChart() {
   const xTicks = getTimeTicks(data)
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full text-slate-400">Loading chart data...</div>
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400">
+        Loading chart data...
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="flex items-center justify-center h-full text-rose-400">Error loading chart</div>
+    return (
+      <div className="flex items-center justify-center h-full text-rose-400">
+        Error loading chart
+      </div>
+    )
   }
 
   if (!data || data.length === 0) {
-    return <div className="flex items-center justify-center h-full text-slate-400">No data available</div>
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400">
+        No data available
+      </div>
+    )
   }
 
   return (
@@ -124,7 +139,9 @@ export function PriceChart() {
       {selectedSymbol && (
         <div className="px-4 pt-4 pb-2 flex items-baseline gap-3">
           <span className="text-slate-100 font-bold text-lg">{selectedSymbol}</span>
-          {lastPriceFormatted && <span className="text-slate-100 text-2xl font-semibold">${lastPriceFormatted}</span>}
+          {lastPriceFormatted && (
+            <span className="text-slate-100 text-2xl font-semibold">${lastPriceFormatted}</span>
+          )}
           {changeLabel && (
             <span className="text-sm font-medium" style={{ color }}>
               {changeLabel}
@@ -142,8 +159,8 @@ export function PriceChart() {
               domain={['dataMin', 'dataMax']}
               ticks={xTicks}
               tickFormatter={formatTime}
-              stroke="#334155"
-              tick={{ fill: '#64748b', fontSize: 11 }}
+              stroke={CHART_COLORS.axisLine}
+              tick={{ fill: CHART_COLORS.axisTick, fontSize: 11 }}
             />
             <YAxis hide domain={['auto', 'auto']} />
             <Tooltip content={<CustomTooltip />} />

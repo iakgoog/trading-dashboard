@@ -1,144 +1,145 @@
-import { useConnectionStore } from '../../stores/connection';
-import { useTickersStore } from '../../stores/tickers';
-import { TOP_SYMBOLS } from '../../constants/symbols';
-import type { BinanceWSMessage } from '../../types/binance';
-import { BINANCE_WS_BASE_STREAM, TICKER_STREAM_SUFFIX } from '../../constants/api';
-const HEARTBEAT_INTERVAL_MS = 1_000; // Check every 1s for precision (D-05)
-const STALE_THRESHOLD_MS = 35_000;
-const BACKOFF_BASE_MS = 500;
-const BACKOFF_MAX_MS = 30_000;
-const BACKOFF_MULTIPLIER = 2;
-const JITTER_FACTOR = 0.2; // ±20%
-const THROUGHPUT_WARN_BYTES_PER_S = 40_000; // 40 KB/s
+import { useConnectionStore } from '../../stores/connection'
+import { useTickersStore } from '../../stores/tickers'
+import { TOP_SYMBOLS } from '../../constants/symbols'
+import type { BinanceWSMessage } from '../../types/binance'
+import { BINANCE_WS_BASE_STREAM, TICKER_STREAM_SUFFIX } from '../../constants/api'
+const HEARTBEAT_INTERVAL_MS = 1_000 // Check every 1s for precision (D-05)
+const STALE_THRESHOLD_MS = 35_000
+const BACKOFF_BASE_MS = 500
+const BACKOFF_MAX_MS = 30_000
+const BACKOFF_MULTIPLIER = 2
+const JITTER_FACTOR = 0.2 // ±20%
+const THROUGHPUT_WARN_BYTES_PER_S = 40_000 // 40 KB/s
 
 /** Computes jittered exponential backoff delay (D-04). */
 function backoffDelay(retryCount: number): number {
-  const base = Math.min(
-    BACKOFF_BASE_MS * Math.pow(BACKOFF_MULTIPLIER, retryCount),
-    BACKOFF_MAX_MS,
-  );
-  const jitter = base * JITTER_FACTOR * (Math.random() * 2 - 1);
-  return Math.max(0, base + jitter);
+  const base = Math.min(BACKOFF_BASE_MS * Math.pow(BACKOFF_MULTIPLIER, retryCount), BACKOFF_MAX_MS)
+  const jitter = base * JITTER_FACTOR * (Math.random() * 2 - 1)
+  return Math.max(0, base + jitter)
 }
 
 export class BinanceWSManager {
-  private symbols: string[];
-  private ws: WebSocket | null = null;
-  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private stopped = false;
+  private symbols: string[]
+  private ws: WebSocket | null = null
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  private stopped = false
 
   // Throughput monitoring (D-03)
-  private bytesThisSecond = 0;
-  private throughputTimer: ReturnType<typeof setInterval> | null = null;
+  private bytesThisSecond = 0
+  private throughputTimer: ReturnType<typeof setInterval> | null = null
 
   constructor(symbols: string[]) {
-    this.symbols = symbols;
+    this.symbols = symbols
   }
 
   start(): void {
-    this.stopped = false;
-    this.connect();
-    this.startThroughputMonitor();
+    this.stopped = false
+    this.connect()
+    this.startThroughputMonitor()
   }
 
   stop(): void {
-    this.stopped = true;
-    this.clearTimers();
-    this.ws?.close(1000);
-    this.ws = null;
+    this.stopped = true
+    this.clearTimers()
+    this.ws?.close(1000)
+    this.ws = null
   }
 
   private buildUrl(): string {
-    const streams = this.symbols.map((s) => `${s}${TICKER_STREAM_SUFFIX}`).join('/');
-    return `${BINANCE_WS_BASE_STREAM}${streams}`;
+    const streams = this.symbols.map((s) => `${s}${TICKER_STREAM_SUFFIX}`).join('/')
+    return `${BINANCE_WS_BASE_STREAM}${streams}`
   }
 
   private connect(): void {
-    const store = useConnectionStore.getState();
-    this.ws = new WebSocket(this.buildUrl());
+    const store = useConnectionStore.getState()
+    this.ws = new WebSocket(this.buildUrl())
 
     this.ws.onopen = () => {
-      store.setStatus('connected');
-      store.setRetryCount(0);
-      store.setLastError(null);
-      this.startHeartbeat();
-    };
+      store.setStatus('connected')
+      store.setRetryCount(0)
+      store.setLastError(null)
+      this.startHeartbeat()
+    }
 
     this.ws.onmessage = (event: MessageEvent<string>) => {
-      store.setLastMessageAt(Date.now());
+      store.setLastMessageAt(Date.now())
 
       // Throughput accounting (D-03) — check synchronously per message
-      this.bytesThisSecond += event.data.length;
+      this.bytesThisSecond += event.data.length
       if (this.bytesThisSecond > THROUGHPUT_WARN_BYTES_PER_S) {
         console.warn(
-          `[BinanceWSManager] High throughput detected: ${(this.bytesThisSecond / 1024).toFixed(1)} KB/s — budget is ${THROUGHPUT_WARN_BYTES_PER_S / 1024} KB/s (D-03)`,
-        );
+          `[BinanceWSManager] High throughput detected: ${(this.bytesThisSecond / 1024).toFixed(1)} KB/s — budget is ${THROUGHPUT_WARN_BYTES_PER_S / 1024} KB/s (D-03)`
+        )
       }
 
       try {
-        const msg = JSON.parse(event.data) as BinanceWSMessage;
-        const d = msg.data;
+        const msg = JSON.parse(event.data) as BinanceWSMessage
+        const d = msg.data
         useTickersStore.getState().updateTicker(d.s, {
           symbol: d.s,
           lastPrice: d.c,
           priceChangePercent: d.P,
           volume: d.v,
           openTime: d.O,
-        });
+        })
       } catch {
         // malformed payload — ignore
       }
-    };
+    }
 
     this.ws.onclose = (_event: CloseEvent) => {
-      this.stopHeartbeat();
-      if (this.stopped) return;
+      this.stopHeartbeat()
+      if (this.stopped) return
       // Guard: heartbeat may have already scheduled a reconnect
-      if (this.reconnectTimer !== null) return;
-      this.scheduleReconnect();
-    };
+      if (this.reconnectTimer !== null) return
+      this.scheduleReconnect()
+    }
 
     this.ws.onerror = () => {
-      useConnectionStore.getState().setLastError('WebSocket error');
-    };
+      useConnectionStore.getState().setLastError('WebSocket error')
+    }
   }
 
   /** Centralized reconnect scheduler — safe to call from onclose or heartbeat. */
   private scheduleReconnect(): void {
-    const store = useConnectionStore.getState();
-    store.setStatus('reconnecting');
-    const currentRetry = store.retryCount;
-    store.setRetryCount(currentRetry + 1);
-    const delay = backoffDelay(currentRetry);
+    const store = useConnectionStore.getState()
+    store.setStatus('reconnecting')
+    const currentRetry = store.retryCount
+    store.setRetryCount(currentRetry + 1)
+    const delay = backoffDelay(currentRetry)
     this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      if (!this.stopped) this.connect();
-    }, delay);
+      this.reconnectTimer = null
+      if (!this.stopped) this.connect()
+    }, delay)
   }
 
   private startHeartbeat(): void {
-    this.stopHeartbeat();
+    this.stopHeartbeat()
     this.heartbeatTimer = setInterval(() => {
-      const { lastMessageAt, status } = useConnectionStore.getState();
-      if (status !== 'connected') return;
+      const { lastMessageAt, status } = useConnectionStore.getState()
+      if (status !== 'connected') return
       if (lastMessageAt !== null && Date.now() - lastMessageAt >= STALE_THRESHOLD_MS) {
         // Schedule reconnect FIRST so onclose guard sees reconnectTimer !== null
         // and doesn't double-schedule. This also updates status immediately
         // without depending on onclose, which may not fire in DevTools offline mode.
-        this.stopHeartbeat();
-        const staleWs = this.ws;
-        this.ws = null;
-        this.scheduleReconnect();
-        try { staleWs?.close(4000); } catch { /* ignore */ }
+        this.stopHeartbeat()
+        const staleWs = this.ws
+        this.ws = null
+        this.scheduleReconnect()
+        try {
+          staleWs?.close(4000)
+        } catch {
+          /* ignore */
+        }
       }
-    }, HEARTBEAT_INTERVAL_MS);
+    }, HEARTBEAT_INTERVAL_MS)
   }
 
   private stopHeartbeat(): void {
     if (this.heartbeatTimer !== null) {
-      clearInterval(this.heartbeatTimer);
-      this.heartbeatTimer = null;
+      clearInterval(this.heartbeatTimer)
+      this.heartbeatTimer = null
     }
   }
 
@@ -146,27 +147,25 @@ export class BinanceWSManager {
     this.throughputTimer = setInterval(() => {
       if (this.bytesThisSecond > THROUGHPUT_WARN_BYTES_PER_S) {
         console.warn(
-          `[BinanceWSManager] High throughput detected: ${(this.bytesThisSecond / 1024).toFixed(1)} KB/s — budget is ${THROUGHPUT_WARN_BYTES_PER_S / 1024} KB/s (D-03)`,
-        );
+          `[BinanceWSManager] High throughput detected: ${(this.bytesThisSecond / 1024).toFixed(1)} KB/s — budget is ${THROUGHPUT_WARN_BYTES_PER_S / 1024} KB/s (D-03)`
+        )
       }
-      this.bytesThisSecond = 0;
-    }, 1_000);
+      this.bytesThisSecond = 0
+    }, 1_000)
   }
 
   private clearTimers(): void {
-    this.stopHeartbeat();
+    this.stopHeartbeat()
     if (this.reconnectTimer !== null) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
     }
     if (this.throughputTimer !== null) {
-      clearInterval(this.throughputTimer);
-      this.throughputTimer = null;
+      clearInterval(this.throughputTimer)
+      this.throughputTimer = null
     }
   }
 }
 
 // Singleton
-export const binanceWSManager = new BinanceWSManager(
-  TOP_SYMBOLS.map((s) => s.toLowerCase()),
-);
+export const binanceWSManager = new BinanceWSManager(TOP_SYMBOLS.map((s) => s.toLowerCase()))

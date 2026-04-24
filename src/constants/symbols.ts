@@ -19,6 +19,6 @@ export const TOP_SYMBOLS = [
   'XLMUSDT',
   'FILUSDT',
   'APTUSDT',
-] as const;
+] as const
 
-export type TopSymbol = (typeof TOP_SYMBOLS)[number];
+export type TopSymbol = (typeof TOP_SYMBOLS)[number]

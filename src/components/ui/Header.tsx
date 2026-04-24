@@ -1,8 +1,8 @@
-import { StatusBadge } from './StatusBadge';
-import { binanceWSManager } from '../../lib/binance/ws-manager';
+import { StatusBadge } from './StatusBadge'
+import { binanceWSManager } from '../../lib/binance/ws-manager'
 
 interface HeaderProps {
-  onTickersOpen?: () => void;
+  onTickersOpen?: () => void
 }
 
 export function Header({ onTickersOpen }: HeaderProps) {
@@ -32,8 +32,8 @@ export function Header({ onTickersOpen }: HeaderProps) {
             {import.meta.env.DEV && (
               <button
                 onClick={() => {
-                  binanceWSManager.stop();
-                  setTimeout(() => binanceWSManager.start(), 100);
+                  binanceWSManager.stop()
+                  setTimeout(() => binanceWSManager.start(), 100)
                 }}
                 className="text-xs font-mono text-slate-400 hover:text-rose-500 px-2 py-1 rounded border border-slate-200 hover:border-rose-200 transition-colors"
                 title="Force disconnect (dev only)"
@@ -45,5 +45,5 @@ export function Header({ onTickersOpen }: HeaderProps) {
         </div>
       </div>
     </header>
-  );
+  )
 }
