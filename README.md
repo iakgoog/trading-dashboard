@@ -44,6 +44,12 @@ On symbol select, TanStack Query fetches the last 100 1-minute candles from REST
 
 ## Key Design Decisions
 
+### Proactive Live Data Integration
+While maintaining momentum during the initial phase, this project was developed using the **public Binance API** (REST & WebSockets). This was a deliberate choice to:
+1. **Demonstrate Technical Depth**: Show handling of high-frequency, production-grade data streams.
+2. **Ensure Resilience**: Validate the WebSocket manager against real-world network conditions and rate limits.
+3. **Architecture Readiness**: The system is built with a clean separation of concerns, making it modular and ready to point to any compatible mock or proprietary backend with minimal configuration changes.
+
 ### Line chart over candlestick
 A line chart on `close` price satisfies the "real-time chart" requirement with lower complexity. The kline data stream provides full OHLCV — upgrading to a candlestick `ComposedChart` is straightforward if needed.
 
