@@ -3,23 +3,10 @@ import { useTickersStore } from '../../stores/tickers';
 import { useSelectedSymbolStore } from '../../stores/selected-symbol';
 import { Sparkline } from './Sparkline';
 
+import { formatAdaptivePrice, formatVolume } from '../../lib/format';
+
 interface TickerRowProps {
   symbol: string;
-}
-
-function formatVolume(volume: string): string {
-  const v = parseFloat(volume);
-  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(2)}B`;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(2)}K`;
-  return v.toFixed(2);
-}
-
-function formatPrice(price: string): string {
-  const p = parseFloat(price);
-  if (p >= 1_000) return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (p >= 1) return p.toFixed(4);
-  return p.toFixed(6);
 }
 
 export const TickerRow = React.memo(function TickerRow({ symbol }: TickerRowProps) {
@@ -61,7 +48,7 @@ export const TickerRow = React.memo(function TickerRow({ symbol }: TickerRowProp
         <span className="text-slate-500 font-normal text-xs ml-0.5">USDT</span>
       </td>
       <td className="px-3 py-2 text-right text-sm tabular-nums text-slate-300 font-mono">
-        {formatPrice(ticker.lastPrice)}
+        {formatAdaptivePrice(parseFloat(ticker.lastPrice))}
       </td>
       <td className={`px-3 py-2 text-right text-sm tabular-nums font-medium ${changeClass}`}>
         {changeSign}{changePercent.toFixed(2)}%

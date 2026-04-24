@@ -29,7 +29,11 @@ export function useKlineData() {
           const k = message.k
           const newPoint: ChartPoint = {
             time: k.t,
-            value: parseFloat(k.c),
+            value: parseFloat(k.c), // close
+            open: parseFloat(k.o),
+            high: parseFloat(k.h),
+            low: parseFloat(k.l),
+            volume: parseFloat(k.v),
           }
 
           queryClient.setQueryData(['klines', selectedSymbol], (prev: ChartPoint[] = []) => {

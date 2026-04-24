@@ -2,9 +2,17 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useKlineData } from '../hooks/useKlineData'
 import { useTickersStore } from '../stores/tickers'
 import { useSelectedSymbolStore } from '../stores/selected-symbol'
+import { formatAdaptivePrice, formatVolume } from '../lib/format'
 
 interface TooltipPayload {
-  value: number
+  payload: {
+    time: number
+    value: number
+    open: number
+    high: number
+    low: number
+    volume: number
+  }
 }
 
 interface CustomTooltipProps {
@@ -13,21 +21,45 @@ interface CustomTooltipProps {
   label?: number
 }
 
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length || payload[0] === undefined) return null
-  const price = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(payload[0].value)
+  const d = payload[0].payload
+  
   const dt = new Intl.DateTimeFormat('en-US', {
     day: '2-digit',
     month: 'short',
-    year: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    timeZoneName: 'short',
-  }).format(new Date(label ?? 0))
+    hour12: false,
+  }).format(new Date(d.time))
+
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm">
-      <p className="text-slate-100 font-medium">{price}</p>
-      <p className="text-slate-400">{dt}</p>
+    <div className="bg-slate-900/95 border border-slate-700 rounded-lg shadow-xl p-3 text-xs min-w-[140px] backdrop-blur-sm">
+      <div className="text-slate-400 mb-2 border-b border-slate-800 pb-1 flex justify-between">
+        <span>{dt}</span>
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-500">Open</span>
+          <span className="text-slate-200 font-mono">{formatAdaptivePrice(d.open)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-500">High</span>
+          <span className="text-slate-200 font-mono">{formatAdaptivePrice(d.high)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-500">Low</span>
+          <span className="text-slate-200 font-mono">{formatAdaptivePrice(d.low)}</span>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-slate-800/50 pt-1.5 mt-1.5">
+          <span className="text-slate-500 font-medium">Close</span>
+          <span className="text-blue-400 font-bold font-mono">{formatAdaptivePrice(d.value)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-slate-500">Vol</span>
+          <span className="text-slate-400 font-mono">{formatVolume(d.volume)}</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -41,8 +73,8 @@ export function PriceChart() {
   const isNegative = change < 0
   const color = isNegative ? '#ef4444' : '#22c55e'
 
-  const lastPrice = ticker
-    ? new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(parseFloat(ticker.lastPrice))
+  const lastPriceFormatted = ticker
+    ? formatAdaptivePrice(parseFloat(ticker.lastPrice))
     : null
 
   const changeLabel = ticker
@@ -69,7 +101,7 @@ export function PriceChart() {
       {selectedSymbol && (
         <div className="px-4 pt-4 pb-2 flex items-baseline gap-3">
           <span className="text-slate-100 font-bold text-lg">{selectedSymbol}</span>
-          {lastPrice && <span className="text-slate-100 text-2xl font-semibold">${lastPrice}</span>}
+          {lastPriceFormatted && <span className="text-slate-100 text-2xl font-semibold">${lastPriceFormatted}</span>}
           {changeLabel && (
             <span className="text-sm font-medium" style={{ color }}>
               {changeLabel}
@@ -79,7 +111,7 @@ export function PriceChart() {
       )}
       <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <XAxis
               dataKey="time"
               tickFormatter={formatTime}

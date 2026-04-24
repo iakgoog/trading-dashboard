@@ -41,6 +41,10 @@ export interface Kline {
 export interface ChartPoint {
   time: number
   value: number
+  open: number
+  high: number
+  low: number
+  volume: number
 }
 
 export async function getTickerSnapshots(symbols: string[]): Promise<TickerSnapshot[]> {
@@ -84,6 +88,10 @@ export async function getKlines(
 
   return data.map((kline) => ({
     time: kline[0] as number,
-    value: parseFloat(kline[4] as string),
+    value: parseFloat(kline[4] as string), // close
+    open: parseFloat(kline[1] as string),
+    high: parseFloat(kline[2] as string),
+    low: parseFloat(kline[3] as string),
+    volume: parseFloat(kline[5] as string),
   }))
 }
