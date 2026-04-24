@@ -33,7 +33,7 @@ export function App() {
   }, [snapshots, setTickers]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden">
       <Header onTickersOpen={() => setIsDrawerOpen(true)} />
 
       {/* Desktop: sidebar + main area layout */}

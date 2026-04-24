@@ -97,7 +97,7 @@ export function PriceChart() {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-slate-900">
+    <div className="flex flex-col w-full h-full min-h-0 bg-slate-900">
       {selectedSymbol && (
         <div className="px-4 pt-4 pb-2 flex items-baseline gap-3">
           <span className="text-slate-100 font-bold text-lg">{selectedSymbol}</span>
